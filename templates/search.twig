@@ -1,0 +1,225 @@
+{% extends 'base.twig' %}
+{% block title %}Advanced Search – {{ site_name }}{% endblock %}
+{% block content %}
+
+<div class="breadcrumb"><a href="index.php">Home</a> › Advanced Search</div>
+
+<div class="page-header">
+    <h1>🔍 Advanced Search</h1>
+    <a href="index.php" class="btn btn-secondary">← Back to Collection</a>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+    <h3 style="margin-bottom:1.2rem; color:var(--accent);">Search Filters</h3>
+    <div class="search-form-grid">
+        <div class="form-group">
+            <label>Movie Title</label>
+            <input type="text" id="f-title" placeholder="e.g. Dark Knight">
+        </div>
+        <div class="form-group">
+            <label>Genre</label>
+            <select id="f-genre">
+                <option value="">All Genres</option>
+                {% for g in genres %}
+                <option value="{{ g.genre }}">{{ g.genre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Director</label>
+            <input type="text" id="f-director" placeholder="e.g. Nolan">
+        </div>
+        <div class="form-group">
+            <label>Release Year</label>
+            <select id="f-year">
+                <option value="">Any Year</option>
+                {% for y in years %}
+                <option value="{{ y.release_year }}">{{ y.release_year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Min Rating</label>
+            <input type="number" id="f-min-rating" min="0" max="10" step="0.1" placeholder="0">
+        </div>
+        <div class="form-group">
+            <label>Max Rating</label>
+            <input type="number" id="f-max-rating" min="0" max="10" step="0.1" placeholder="10">
+        </div>
+        <div class="form-group">
+            <label>Watch Status</label>
+            <select id="f-status">
+                <option value="">All</option>
+                <option value="Watched">Watched</option>
+                <option value="Watching">Watching</option>
+                <option value="Not Watched">Not Watched</option>
+                <option value="Dropped">Dropped</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Language</label>
+            <input type="text" id="f-language" placeholder="e.g. English, Korean">
+        </div>
+        <div class="form-group">
+            <label>Sort By</label>
+            <select id="f-sort">
+                <option value="title_asc">Title A–Z</option>
+                <option value="title_desc">Title Z–A</option>
+                <option value="rating_desc">Rating ↓</option>
+                <option value="rating_asc">Rating ↑</option>
+                <option value="year_desc">Year Newest</option>
+                <option value="year_asc">Year Oldest</option>
+                <option value="duration_desc">Longest First</option>
+            </select>
+        </div>
+    </div>
+
+    <div style="margin-top:1rem; display:flex; gap:.8rem; flex-wrap:wrap; align-items:center;">
+        <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" id="f-fav"> ⭐ Favourites only</label>
+            <label class="checkbox-label"><input type="checkbox" id="f-sequel"> 🎬 Has Sequel</label>
+            <label class="checkbox-label"><input type="checkbox" id="f-4k"> 📺 4K only</label>
+        </div>
+        <button class="btn btn-primary" onclick="doSearch()">🔍 Search</button>
+        <button class="btn btn-secondary" onclick="clearSearch()">✕ Clear</button>
+    </div>
+</div>
+
+{# Results area #}
+<div id="results-status" style="color:var(--muted); font-size:.9rem; margin-bottom:1rem;"></div>
+
+<div id="results-area" class="movies-grid"></div>
+
+<script>
+let searchTimer = null;
+
+function autoSearch() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(doSearch, 400);
+}
+
+// Auto-search on any field change
+document.querySelectorAll('#f-title,#f-director,#f-language,#f-min-rating,#f-max-rating').forEach(el => {
+    el.addEventListener('input', autoSearch);
+});
+document.querySelectorAll('#f-genre,#f-year,#f-status,#f-sort,#f-fav,#f-sequel,#f-4k').forEach(el => {
+    el.addEventListener('change', doSearch);
+});
+
+function clearSearch() {
+    document.getElementById('f-title').value = '';
+    document.getElementById('f-genre').value = '';
+    document.getElementById('f-director').value = '';
+    document.getElementById('f-year').value = '';
+    document.getElementById('f-min-rating').value = '';
+    document.getElementById('f-max-rating').value = '';
+    document.getElementById('f-status').value = '';
+    document.getElementById('f-language').value = '';
+    document.getElementById('f-sort').value = 'title_asc';
+    document.getElementById('f-fav').checked = false;
+    document.getElementById('f-sequel').checked = false;
+    document.getElementById('f-4k').checked = false;
+    document.getElementById('results-area').innerHTML = '';
+    document.getElementById('results-status').textContent = '';
+}
+
+function doSearch() {
+    const payload = {
+        title:        document.getElementById('f-title').value.trim(),
+        genre:        document.getElementById('f-genre').value,
+        director:     document.getElementById('f-director').value.trim(),
+        release_year: document.getElementById('f-year').value,
+        min_rating:   document.getElementById('f-min-rating').value,
+        max_rating:   document.getElementById('f-max-rating').value,
+        watch_status: document.getElementById('f-status').value,
+        language:     document.getElementById('f-language').value.trim(),
+        sort_by:      document.getElementById('f-sort').value,
+        is_favourite: document.getElementById('f-fav').checked ? '1' : '',
+        has_sequel:   document.getElementById('f-sequel').checked ? '1' : '',
+        is_4k:        document.getElementById('f-4k').checked ? '1' : '',
+    };
+
+    const statusEl = document.getElementById('results-status');
+    const resultsEl = document.getElementById('results-area');
+    statusEl.textContent = 'Searching…';
+    resultsEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">⏳ Loading...</div>';
+
+    fetch('ajax_search.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) {
+            statusEl.textContent = 'Error: ' + data.error;
+            resultsEl.innerHTML = '';
+            return;
+        }
+
+        statusEl.textContent = data.length + ' movie' + (data.length !== 1 ? 's' : '') + ' found';
+
+        if (data.length === 0) {
+            resultsEl.innerHTML = `
+                <div class="no-results" style="grid-column:1/-1;">
+                    <div class="icon">🎞️</div>
+                    <h3>No movies match your search</h3>
+                    <p style="margin-top:.5rem;">Try adjusting your filters.</p>
+                </div>`;
+            return;
+        }
+
+        resultsEl.innerHTML = data.map(m => {
+            const statusBadge = {
+                'Watched':     '<span class="badge badge-watched">✓ Watched</span>',
+                'Watching':    '<span class="badge badge-watching">▶ Watching</span>',
+                'Not Watched': '<span class="badge badge-not-watched">○ Not Watched</span>',
+                'Dropped':     '<span class="badge badge-dropped">✗ Dropped</span>'
+            }[m.watch_status] || '';
+
+            const tags = [
+                m.is_4k        ? '<span class="tag">4K</span>' : '',
+                m.has_sequel   ? '<span class="tag">Sequel</span>' : '',
+                m.is_favourite ? '<span class="tag" style="color:var(--gold);border-color:var(--gold);">⭐ Fav</span>' : '',
+                m.price        ? `<span class="tag">£${parseFloat(m.price).toFixed(2)}</span>` : '',
+            ].filter(Boolean).join(' ');
+
+            return `
+            <div class="movie-card">
+                <div class="movie-header">
+                    <div class="movie-title">${m.is_favourite ? '★ ' : ''}${m.title}</div>
+                    <div class="movie-meta">
+                        ${m.release_year ? `<span>${m.release_year}</span>` : ''}
+                        ${m.duration_minutes ? `<span>${m.duration_minutes}min</span>` : ''}
+                        ${m.language ? `<span>${m.language}</span>` : ''}
+                    </div>
+                </div>
+                <div class="movie-body">
+                    ${m.genre ? `<span class="badge badge-genre">${m.genre}</span>` : ''}
+                    &nbsp;${statusBadge}
+                    ${m.rating ? `<div style="margin:.6rem 0;"><span class="rating">★ ${m.rating}/10</span></div>` : ''}
+                    ${m.director ? `<div style="font-size:.8rem;color:var(--muted);margin:.4rem 0;">🎬 ${m.director}</div>` : ''}
+                    ${m.cast_members ? `<div style="font-size:.78rem;color:#aaa;margin:.3rem 0;">🎭 ${m.cast_members}</div>` : ''}
+                    ${tags ? `<div style="margin-top:.5rem;display:flex;gap:.4rem;flex-wrap:wrap;">${tags}</div>` : ''}
+                </div>
+                <div class="movie-footer">
+                    <a href="movie_details.php?id=${m.movie_id}" class="btn btn-secondary" style="font-size:.8rem;padding:.3rem .7rem;">View</a>
+                    <a href="edit_movie.php?id=${m.movie_id}" class="btn btn-edit" style="font-size:.8rem;padding:.3rem .7rem;">Edit</a>
+                    <a href="delete_movie.php?id=${m.movie_id}" class="btn btn-danger" style="font-size:.8rem;padding:.3rem .7rem;"
+                       onclick="return confirm('Delete ${m.title.replace(/'/g,"\\'")}?')">Delete</a>
+                </div>
+            </div>`;
+        }).join('');
+    })
+    .catch(err => {
+        document.getElementById('results-status').textContent = 'Request failed. Please try again.';
+        document.getElementById('results-area').innerHTML = '';
+        console.error(err);
+    });
+}
+
+// Run initial search on page load showing all movies
+doSearch();
+</script>
+
+{% endblock %}
