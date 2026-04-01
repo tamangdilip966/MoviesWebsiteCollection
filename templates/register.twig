@@ -1,0 +1,47 @@
+{% extends 'base.twig' %}
+{% block title %}Register – {{ site_name }}{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-box" style="max-width:480px;">
+        <div class="auth-title">🎬 Create Account</div>
+        <div class="auth-subtitle">Join the Movie Collection System</div>
+
+        {% if errors %}
+        <div class="errors"><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
+        {% endif %}
+        {% if success %}
+        <div class="success-msg">{{ success }}</div>
+        {% endif %}
+
+        <form method="POST" action="register.php">
+            <div class="form-group" style="margin-bottom:.8rem;">
+                <label>Username</label>
+                <input type="text" name="username" required minlength="3" placeholder="Min. 3 characters">
+            </div>
+            <div class="form-group" style="margin-bottom:.8rem;">
+                <label>Email Address</label>
+                <input type="email" name="email" required placeholder="you@example.com">
+            </div>
+            <div class="form-group" style="margin-bottom:.8rem;">
+                <label>Password</label>
+                <input type="password" name="password" required minlength="6" placeholder="Min. 6 characters">
+            </div>
+            <div class="form-group" style="margin-bottom:1rem;">
+                <label>Confirm Password</label>
+                <input type="password" name="confirm_password" required placeholder="Repeat password">
+            </div>
+            <div class="form-group" style="margin-bottom:1.2rem;">
+                <label>CAPTCHA – enter the code shown below</label>
+                <div style="background:#0d0d1a; padding:.8rem; border-radius:8px; text-align:center; letter-spacing:.3rem; font-size:1.4rem; font-weight:900; color:var(--accent); font-family:monospace; border:1px solid var(--border);">
+                    {{ captcha }}
+                </div>
+                <input type="text" name="captcha" required placeholder="Enter CAPTCHA code" style="margin-top:.5rem;" autocomplete="off">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%; padding:.7rem;">Register</button>
+        </form>
+        <div class="auth-link">
+            Already have an account? <a href="login.php">Login here</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.twig' %}
+{% block title %}Login – {{ site_name }}{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-box">
+        <div class="auth-title">🎬 {{ site_name }}</div>
+        <div class="auth-subtitle">Sign in to manage your collection</div>
+
+        {% if error %}
+        <div class="errors"><ul><li>{{ error }}</li></ul></div>
+        {% endif %}
+
+        <form method="POST" action="login.php">
+            <div class="form-group" style="margin-bottom:1rem;">
+                <label>Username</label>
+                <input type="text" name="username" required autocomplete="username" placeholder="Enter username">
+            </div>
+            <div class="form-group" style="margin-bottom:1.5rem;">
+                <label>Password</label>
+                <input type="password" name="password" required autocomplete="current-password" placeholder="Enter password">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%; padding:.7rem;">Sign In</button>
+        </form>
+        <div class="auth-link">
+            Don't have an account? <a href="register.php">Register here</a>
+        </div>
+        <div style="margin-top:1rem; padding:.8rem; background:#0d0d1a; border-radius:8px; font-size:.8rem; color:var(--muted); text-align:center;">
+            Demo login: <strong style="color:var(--text);">admin</strong> / <strong style="color:var(--text);">admin123</strong>
+        </div>
+    </div>
+</div>
+{% endblock %}
