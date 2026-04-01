@@ -1,0 +1,136 @@
+{% extends 'base.twig' %}
+{% block title %}My Collection – {{ site_name }}{% endblock %}
+{% block content %}
+
+{# Stats Bar #}
+<div class="stats-bar">
+    <div class="stat-box">
+        <div class="stat-num">{{ total_movies }}</div>
+        <div class="stat-label">Total Movies</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-num" style="color:var(--gold);">{{ avg_rating }}</div>
+        <div class="stat-label">Avg Rating</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-num" style="color:var(--blue);">{{ (total_duration / 60)|round(1) }}h</div>
+        <div class="stat-label">Total Runtime</div>
+    </div>
+    {% for s in stats %}
+    <div class="stat-box">
+        <div class="stat-num" style="font-size:1.4rem; color:var(--green);">{{ s.count }}</div>
+        <div class="stat-label">{{ s.watch_status }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+{# Filters #}
+<div class="filters">
+    <form method="GET" action="index.php">
+        <div class="filter-group">
+            <label>Search</label>
+            <input type="text" name="search" value="{{ search }}" placeholder="Title, director, cast…" style="min-width:200px;">
+        </div>
+        <div class="filter-group">
+            <label>Genre</label>
+            <select name="genre">
+                <option value="">All Genres</option>
+                {% for g in genres %}
+                <option value="{{ g.genre }}" {% if genre_filter == g.genre %}selected{% endif %}>{{ g.genre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Watch Status</label>
+            <select name="watch_filter">
+                <option value="">All</option>
+                <option value="Watched" {% if watch_filter == 'Watched' %}selected{% endif %}>Watched</option>
+                <option value="Watching" {% if watch_filter == 'Watching' %}selected{% endif %}>Watching</option>
+                <option value="Not Watched" {% if watch_filter == 'Not Watched' %}selected{% endif %}>Not Watched</option>
+                <option value="Dropped" {% if watch_filter == 'Dropped' %}selected{% endif %}>Dropped</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Year</label>
+            <input type="number" name="year_filter" value="{{ year_filter }}" placeholder="e.g. 2020" style="width:100px;">
+        </div>
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </div>
+        {% if search or genre_filter or watch_filter or year_filter %}
+        <div class="filter-group">
+            <label>&nbsp;</label>
+            <a href="index.php" class="btn btn-secondary">Clear</a>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+<div class="page-header">
+    <h1>🎬 Movie Collection
+        {% if search or genre_filter or watch_filter %}<span style="font-size:1rem; color:var(--muted); font-weight:400;"> – filtered results</span>{% endif %}
+    </h1>
+    <span style="color:var(--muted); font-size:.9rem;">{{ movies|length }} movie{% if movies|length != 1 %}s{% endif %}</span>
+</div>
+
+{% if movies %}
+<div class="movies-grid">
+    {% for m in movies %}
+    <div class="movie-card">
+        <div class="movie-header">
+            <div class="movie-title">
+                {% if m.is_favourite %}<span style="color:var(--gold);">★</span> {% endif %}
+                {{ m.title }}
+            </div>
+            <div class="movie-meta">
+                {% if m.release_year %}<span>{{ m.release_year }}</span>{% endif %}
+                {% if m.duration_minutes %}<span>{{ m.duration_minutes }}min</span>{% endif %}
+                {% if m.language %}<span>{{ m.language }}</span>{% endif %}
+            </div>
+        </div>
+        <div class="movie-body">
+            {% if m.genre %}<span class="badge badge-genre">{{ m.genre }}</span>{% endif %}
+            &nbsp;
+            {% if m.watch_status == 'Watched' %}<span class="badge badge-watched">✓ Watched</span>
+            {% elseif m.watch_status == 'Watching' %}<span class="badge badge-watching">▶ Watching</span>
+            {% elseif m.watch_status == 'Dropped' %}<span class="badge badge-dropped">✗ Dropped</span>
+            {% else %}<span class="badge badge-not-watched">○ Not Watched</span>{% endif %}
+
+            {% if m.rating %}
+            <div style="margin:.6rem 0;">
+                <span class="rating">★ {{ m.rating }}/10</span>
+            </div>
+            {% endif %}
+
+            {% if m.director %}
+            <div style="font-size:.8rem; color:var(--muted); margin:.4rem 0;">🎬 {{ m.director }}</div>
+            {% endif %}
+
+            {% if m.description %}
+            <p class="movie-desc">{{ m.description }}</p>
+            {% endif %}
+
+            <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.5rem;">
+                {% if m.is_4k %}<span class="tag">4K</span>{% endif %}
+                {% if m.has_sequel %}<span class="tag">Sequel</span>{% endif %}
+                {% if m.price %}<span class="tag">£{{ m.price }}</span>{% endif %}
+            </div>
+        </div>
+        <div class="movie-footer">
+            <a href="movie_details.php?id={{ m.movie_id }}" class="btn btn-secondary" style="font-size:.8rem; padding:.3rem .7rem;">View</a>
+            <a href="edit_movie.php?id={{ m.movie_id }}" class="btn btn-edit" style="font-size:.8rem; padding:.3rem .7rem;">Edit</a>
+            <a href="delete_movie.php?id={{ m.movie_id }}" class="btn btn-danger" style="font-size:.8rem; padding:.3rem .7rem;" onclick="return confirm('Delete {{ m.title|e('js') }}?')">Delete</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="no-results">
+    <div class="icon">🎞️</div>
+    <h2>No movies found</h2>
+    <p style="margin:.5rem 0 1.5rem;">Try adjusting your filters or <a href="add_movie.php" style="color:var(--accent);">add a new movie</a>.</p>
+</div>
+{% endif %}
+
+{% endblock %}
