@@ -1,0 +1,19 @@
+# Ignore vendor folder (can be regenerated with composer install)
+vendor/
+
+# Ignore composer lock file
+composer.lock
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore temporary files
+*.tmp
+*.log
