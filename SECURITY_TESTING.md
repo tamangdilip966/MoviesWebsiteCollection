@@ -1,7 +1,7 @@
 # Security Testing Report
 
 **Student ID:** 2439673  
-**Project:** Movie Collection System  
+**Project:** MovieWebsiteCollection System  
 **Date:** April 2026
 
 ---
@@ -72,27 +72,27 @@ No high-priority vulnerabilities were detected. The prepared statements successf
 
 ## Security Features Verified
 
-### ✅ SQL Injection Protection
+### SQL Injection Protection
 - **Test:** Attempted SQL injection in login form: `' OR '1'='1`
 - **Result:** Failed - Prepared statements prevented injection
 - **Status:** PASS
 
-### ✅ XSS Protection
+###  XSS Protection
 - **Test:** Entered `<script>alert('XSS')</script>` in movie title
 - **Result:** Script was escaped and displayed as text
 - **Status:** PASS
 
-### ✅ Authentication
+### Authentication
 - **Test:** Tried accessing protected pages without login
 - **Result:** Redirected to login page
 - **Status:** PASS
 
-### ✅ Password Security
+### Password Security
 - **Test:** Checked database - passwords are hashed with bcrypt
 - **Result:** No plain text passwords found
 - **Status:** PASS
 
-### ✅ CAPTCHA
+### CAPTCHA
 - **Test:** Attempted registration with wrong CAPTCHA
 - **Result:** Registration blocked
 - **Status:** PASS
@@ -123,16 +123,3 @@ The security testing revealed no critical vulnerabilities. All five required sec
 
 The application demonstrates good security practices for a web development project. The few minor issues found are typical for development environments and don't pose significant risks.
 
----
-
-## Testing Evidence
-
-**Screenshots taken:**
-- ZAP scan results showing no high-priority issues
-- SQL injection test attempts being blocked
-- XSS test showing escaped output
-- Session redirect working correctly
-
-**Test Date:** April 2026  
-**Tester:** Student 2439673  
-**Status:** PASSED - Application is secure for submission
